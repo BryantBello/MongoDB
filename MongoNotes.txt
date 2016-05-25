@@ -1,0 +1,140 @@
+                                ~~~~~~~~~~~~~~~
+                                    MONGODB
+                                ~~~~~~~~~~~~~~~
+*ODM - Object Document Mapping. Maps between object model and document db.
+*Document based database. Not strict at all, will take almost anything. Almost zero data validation.
+
+THERE WERE MANY CHANGES WITH V2.6, PLEASE MAKE SURE THE DOCS YOU USE ARE UP TO DATE AND 
+YOUR VERSION OF MONGO ITSELF IS UP TO DATE.
+---------------------------------------------------------------------------------------
+_id/ObjectId is autiomatically generated
+MONGO AUTOMATICALLY MAKES COLLECTIONS PLURAL userInfo will become "userInfos" etc. Keep this in mind when naming and querying collections
+BSON ~ binary JSON, the format mongodb uses to store data
+THP has a negative impact on mongoDB
+BINDIP IN /etc/mongod.conf is the key to what clients can connect!!! 
+-------
+
+COMMANDS
+--------
+mongo -u username -p password --authenticationDatabase databasename ~ log into a mongoDB with auth
+mongod ~ issue this command in the mongo directory or point to file path
+ps -ef | grep mongo ~ see if the mongo ps is running
+mongo ~ open mongo shell
+show dbs ~ display DBs
+dbs ~ display the selected DB
+use db ~ MongoDB use DATABASE_NAME is used to create database. The command will create a new database if it doesn't exit. Will only save if you add something though. See below...
+show collections ~ display collections in currently selected DB
+db.collection.update( {}, {'$set': {new_key:value}}, false, true) ~ add new key to existing collection
+npm install mongodb -g ~ install mongodb node driver
+mongoose.connect('mongodb://localhost/dbname); ~ create connection to DB, goes in express/server.js main file
+mongostat ~ live db monitoring
+
+db['db-name'].remove( {"_id": ObjectId("57227021b17d1ec50e527d6b")}); ~ remove by ID
+
+db.userInfo.update( {}, {'$set': {realname:{ type: String, required: true }}}, false, true)
+help	Show help.
+db.help()	Show help for database methods.
+db.<collection>.help()	Show help on collection methods. The <collection> can be the name of an existing collection or a non-existing collection.
+show dbs	Print a list of all databases on the server.
+use <db>	Switch current database to <db>. The mongo shell variable db is set to the current database.
+show collections	Print a list of all collections for current database
+show users	Print a list of users for current database.
+show roles	Print a list of all roles, both user-defined and built-in, for the current database.
+show profile	Print the five most recent operations that took 1 millisecond or more. See documentation on the database profiler for more information.
+show databases	Print a list of all available databases.
+load()	Execute a JavaScript file. See Write Scripts for the mongo Shell for more information.
+sudo chown -R `id -u` /var/lib/mongodb ~ gives users read rights for mongo db dir
+
+
+db['repl-failOver'].find({}) OR db.getCollection('repl-failOver').find({}) ~ two ways to use names with illegal characters
+
+mongoimport --host mongodb1.example.net --port 37017 --username NAME --password PASS --db scotch_users --collection scotch-users --type json --file update.json --jsonArray ~ import json array. it may throw errors and have you remove characters, but it works
+mongoexport --db dbname --collection collname --out filename.json ~ exports collection as JSON
+
+
+MONGODB SERVER SETUP
+--------------------
+
+    STEPS TO CREATE A DB USER
+    -------------------------
+
+    1. Create and admin user for the admin database
+
+        use admin
+        db.createUser(
+        {
+            user: "admin",
+            pwd: "password",
+            roles: [ { role: "root", db: "admin" } ]
+        }
+        );
+        
+        
+        
+db.createUser(
+    {
+    user: "kevo",
+    pwd: "asd",
+    roles: [ { role: "dbOwner", db: "gameapp" } ]
+});
+
+
+    2. mongo -u admin -p password --authenticationDatabase admin ~ logs you into mongo shell as admin    
+        
+    3. Create the user for the database you would like to connect to. role can be "read", "write", "readWrite", "dbOwner"
+       and much more. refer to the docs for User Management Methods for more info.
+       
+       You can list numerous objects inside of roles to setup access for numerous DBs
+    
+        db.createUser(
+        {
+            user: "username",
+            pwd: "password",
+            roles: [ { role: "dbOwner", db: "" } ]
+        }
+        );
+        
+        USER MANAGEMENT METHODS
+        -----------------------
+        db.dropUser("name") ~ drop user from selected DB
+        db.getUser("name") ~ return info on a specified user
+        db.getUsers() ~ gets all users in currently selected DB
+        
+        This sets up a "root" user with access to everything. Great for hooking up with an IDE for a view of everything
+        ----------------------------------------------------
+        
+        db.updateUser(
+        "kevo",
+        {
+            roles : [
+                    "userAdminAnyDatabase", "readWriteAnyDatabase", "dbAdminAnyDatabase", "clusterAdmin"
+                    ],
+            pwd: "asd"
+            }
+        )
+        
+db.createUser( { user: "kev", 
+pwd: "asd", 
+roles: [ "userAdminAnyDatabase", "readWriteAnyDatabase", "dbAdminAnyDatabase", "clusterAdmin" ] } ) 
+
+                                ~~~~~~~~~~~~~~~
+                                    MONGOOSE
+                                ~~~~~~~~~~~~~~~
+                                
+mongoose.connect('mongodb://localhost/myapp');
+This is the minimum needed to connect the myapp database running locally on the default port (27017). If the local connection fails then try using 127.0.0.1 instead of localhost. Sometimes issues may arise when the local hostname has been changed.
+
+We may also specify several more parameters in the uri depending on your environment:
+
+mongoose.connect('mongodb://username:password@host:port/database?options...');
+
+ db      - passed to the [underlying driver's db instance](http://mongodb.github.io/node-mongodb-native/2.1/api/Db.html)
+ server  - passed to the [underlying driver's server instance(s)](http://mongodb.github.io/node-mongodb-native/2.1/api/Server.html)
+ replset - passed to the [underlying driver's ReplSet instance](http://mongodb.github.io/node-mongodb-native/2.1/api/ReplSet.html)
+ user    - username for authentication (if not specified in uri)
+ pass    - password for authentication (if not specified in uri)
+ auth    - options for authentication
+ mongos  - passed to the [underlying driver's mongos options](http://mongodb.github.io/node-mongodb-native/2.0/api/Mongos.html)
+
+// Good way to make sure mongoose never stops trying to reconnect
+mongoose.connect(uri, { server: { reconnectTries: Number.MAX_VALUE } });
