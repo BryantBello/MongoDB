@@ -9,6 +9,7 @@ request(link, function(error, response, html) {
     $('p.title').each(function(i, element) {
         var title = $(this).text();
         var link = $(element).children().attr('href');
+        var description = $(this).text();
 
         result.push({
             title: title,
